@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { Download, FolderOpen, Folder, Link, RefreshCw, Check, AlertCircle, LogIn, ArrowDownToLine, Video, Image, LoaderCircle } from 'lucide-vue-next';
-const state=ref({version:'0.3.1',output:'',busy:false,jobs:[],accounts:{}}), text=ref(''), message=ref(''), error=ref(false), working=ref(false), page=ref('download'), update=ref(null);
+const state=ref({version:'0.3.2',output:'',busy:false,jobs:[],accounts:{}}), text=ref(''), message=ref(''), error=ref(false), working=ref(false), page=ref('download'), update=ref(null);
 const platforms=[{id:'douyin',name:'抖音',short:'抖',color:'#ef466f'},{id:'xiaohongshu',name:'小红书',short:'红',color:'#e34646'},{id:'bilibili',name:'B站',short:'B',color:'#329fc7'}];
 const done=computed(()=>state.value.jobs.filter(j=>j.status==='已完成').length);
 const failures=computed(()=>state.value.jobs.filter(j=>j.status==='失败').length);

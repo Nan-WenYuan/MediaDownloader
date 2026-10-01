@@ -5,7 +5,8 @@ $ProgressPreference = 'SilentlyContinue'
 $headers = @{ 'User-Agent' = 'media-downloader-portable' }
 $feed = Invoke-RestMethod 'https://raw.githubusercontent.com/Nan-WenYuan/MediaDownloader/main/update-feed.json' -Headers $headers
 if ($feed.schema -ne 1 -or $feed.manifestUrl -notmatch '^https://github.com/Nan-WenYuan/MediaDownloader/releases/download/') { throw 'Invalid update feed.' }
-$manifest = Invoke-RestMethod $feed.manifestUrl -Headers $headers
+$manifestResponse = Invoke-WebRequest $feed.manifestUrl -Headers $headers -UseBasicParsing
+$manifest = [Text.Encoding]::UTF8.GetString($manifestResponse.RawContentStream.ToArray()) | ConvertFrom-Json
 if ($manifest.schema -ne 1 -or $manifest.files.Count -ne 14) { throw 'Invalid release manifest.' }
 if (!$Destination) { $Destination = Join-Path $PSScriptRoot ('MediaDownloader-' + $manifest.version) }
 $target = [IO.Path]::GetFullPath($Destination)
