@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "manifestUrl": "https://github.com/Nan-WenYuan/MediaDownloader/releases/download/v0.3.1-rc/update-manifest.json",
+  "release": {
+    "tag_name": "v0.3.1-rc",
+    "html_url": "https://github.com/Nan-WenYuan/MediaDownloader/releases/tag/v0.3.1-rc",
+    "body": "新增 GitHub Releases 在线更新，按文件 SHA-256 校验，更新只替换程序并保留登录状态、保存位置和下载文件。\n\n参考游戏存档管理器的便携更新流程；本程序包含下载后端，因此同步更新 EXE 与后端代码。\n\n源码：baca8a8a0235e5396006660daf185b5b9f1e201a\n\n无压缩包：下载 download-portable.ps1 后在 PowerShell 运行，即可逐文件下载为完整便携目录。不要只下载单个 EXE。\n\nRC 限制：三平台登录全过程、抖音及小红书视频仍待真实链接验收。",
+    "prerelease": true
+  }
+}
