@@ -1,0 +1,1 @@
+{ "identifier": "default", "description": "本地桌面主窗口", "windows": ["main"], "permissions": ["core:default"] }

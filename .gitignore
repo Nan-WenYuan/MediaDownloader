@@ -1,0 +1,14 @@
+.runtime/
+下载结果/
+*.part
+node_modules/
+dist/
+src-tauri/target/
+交付/
+项目资料/参考资料/插件原始包/
+项目资料/临时/
+项目资料/回滚/
+数据/
+*.log
+.media-update/
+src-tauri/gen/

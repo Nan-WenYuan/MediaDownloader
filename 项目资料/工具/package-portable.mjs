@@ -1,0 +1,24 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const pkg=JSON.parse(await fs.readFile(path.join(root,'package.json'),'utf8'));
+const type=process.argv.includes('--release')?'R':'RC';
+if(!process.argv.includes('--skip-build'))await new Promise((resolve,reject)=>{const child=spawn(process.execPath,[path.join(root,'node_modules/@tauri-apps/cli/tauri.js'),'build','--no-bundle'],{cwd:root,stdio:'inherit'});child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(Error(`构建失败：${code}`)));});
+const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+const stamp=`${parts.year}${parts.month}${parts.day}_${parts.hour}${parts.minute}${parts.second}`;
+const output=path.join(root,'交付',`三平台下载器-${pkg.version}.${stamp}_${type}`);
+await fs.mkdir(path.join(output,'runtime'),{recursive:true});
+await fs.copyFile(path.join(root,'src-tauri/target/release/media-desktop.exe'),path.join(output,'三平台下载器.exe'));
+await fs.copyFile(process.execPath,path.join(output,'runtime/node.exe'));
+const ffmpeg=process.env.MEDIA_FFMPEG||'D:/Software/ffmpeg/bin/ffmpeg.exe';
+await fs.copyFile(ffmpeg,path.join(output,'runtime/ffmpeg.exe'));
+await fs.copyFile(path.join(path.dirname(process.execPath),'LICENSE'),path.join(output,'runtime/Node-LICENSE.txt'));
+await fs.copyFile(path.join(path.dirname(ffmpeg),'../LICENSE'),path.join(output,'runtime/FFmpeg-LICENSE.txt'));
+await fs.copyFile(path.join(root,'项目资料/便携版使用说明.txt'),path.join(output,'使用说明.txt'));
+await fs.mkdir(path.join(output,'backend/platforms'),{recursive:true});
+for(const file of ['desktop-worker.mjs','core.mjs','auth.mjs','downloader.mjs','updater.mjs'])await fs.copyFile(path.join(root,'src',file),path.join(output,'backend',file));
+for(const file of ['bilibili.mjs','douyin.mjs','xiaohongshu.mjs'])await fs.copyFile(path.join(root,'src/platforms',file),path.join(output,'backend/platforms',file));
+// 只打包程序，不复制开发机账号会话、设置或用户下载文件。
+console.log(`\n便携目录：${output}\n双击 三平台下载器.exe，无需解压或安装 Node.js。`);
