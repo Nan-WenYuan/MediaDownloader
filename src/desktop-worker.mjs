@@ -12,7 +12,7 @@ const root = process.env.MEDIA_APP_DIR || process.cwd();
 const dataDir = process.env.MEDIA_DATA_DIR || path.join(root, '.runtime', 'desktop');
 const configPath = path.join(dataDir, 'settings.json');
 const adapters = { douyin: [resolveDouyin, downloadDouyin], xiaohongshu: [resolveXiaohongshu, downloadXiaohongshu], bilibili: [resolveBilibili, downloadBilibili] };
-const state = { version: process.env.MEDIA_VERSION || '0.3.0', busy: false, output: path.join(root,'下载结果'), jobs: [], accounts: {douyin:'未检查',xiaohongshu:'未检查',bilibili:'未检查'} };
+const state = { version: process.env.MEDIA_VERSION || '0.3.1', busy: false, output: path.join(root,'下载结果'), jobs: [], accounts: {douyin:'未检查',xiaohongshu:'未检查',bilibili:'未检查'} };
 try { const settings = JSON.parse(await fs.readFile(configPath,'utf8')); if (typeof settings.output === 'string' && path.isAbsolute(settings.output)) state.output = settings.output; } catch {}
 async function save() { await fs.mkdir(dataDir,{recursive:true}); await fs.writeFile(configPath,JSON.stringify({output:state.output},null,2)); }
 async function queue(jobs) {

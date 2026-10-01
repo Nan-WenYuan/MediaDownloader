@@ -21,7 +21,7 @@ test('桌面服务协议与中文空格下载目录跨启动持久保存', async
   let service;
   try {
     service = worker(root);
-    assert.equal((await service.request('state')).result.version, '0.3.0');
+    assert.equal((await service.request('state')).result.version, '0.3.1');
     const output = path.join(root,'中文 空格下载');
     assert.equal((await service.request('set_output',{output})).result.output,output);
     assert.match((await service.request('download',{text:'https://example.com/a'})).error,/仅支持/u);

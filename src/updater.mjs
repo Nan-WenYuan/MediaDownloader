@@ -18,6 +18,7 @@ export function validateManifest(value) {
   for(const f of value.files){
     if(!FILES.includes(f.path)||names.has(f.path)||!/^media-[a-zA-Z0-9_.-]+$/.test(f.asset)||assets.has(f.asset)||!Number.isSafeInteger(f.size)||f.size<1||f.size>512*1024*1024||!/^\w{64}$/.test(f.sha256)||!/^[a-f0-9]{64}$/.test(f.sha256))throw Error('更新清单包含非法路径、重复文件或无效校验值');
     names.add(f.path);assets.add(f.asset);
+    if(f.url){trusted(f.url);if(!f.url.startsWith(`https://github.com/${REPOSITORY}/releases/download/`))throw Error('文件来源不是本项目发布');}
   }
   return value;
 }
@@ -32,14 +33,13 @@ async function request(url,limit) {
   }throw Error('更新重定向次数过多');
 }
 async function latest(){
-  // RC 也可试用，但不把草稿暴露给客户端。无需 GitHub 登录凭据。
-  const releases=JSON.parse((await request(`https://api.github.com/repos/${REPOSITORY}/releases?per_page=30`,2*1024*1024)).toString());
-  const release=releases.find(r=>!r.draft&&r.assets.some(a=>a.name==='update-manifest.json'));
-  if(!release)throw Error('尚未发布可用的更新版本');
-  const asset=release.assets.find(a=>a.name==='update-manifest.json');
-  const manifest=validateManifest(JSON.parse((await request(asset.browser_download_url,128*1024)).toString()));
+  // 静态源避开 GitHub 匿名 API 限流；RC 也可试用，无需登录凭据。
+  const feed=JSON.parse((await request(`https://raw.githubusercontent.com/${REPOSITORY}/main/update-feed.json`,128*1024)).toString());
+  if(feed.schema!==1||!feed.manifestUrl?.startsWith(`https://github.com/${REPOSITORY}/releases/download/`))throw Error('更新源格式无效');
+  const release=feed.release;
+  const manifest=validateManifest(JSON.parse((await request(feed.manifestUrl,128*1024)).toString()));
   if(![ `v${manifest.version}`,`v${manifest.version}-rc`].includes(release.tag_name))throw Error('发布标签与更新清单不一致');
-  for(const f of manifest.files){const asset=release.assets.find(a=>a.name===f.asset);if(!asset||asset.size!==f.size)throw Error('更新发布文件不完整');}
+  for(const f of manifest.files)if(!f.url)throw Error('更新清单缺少文件地址');
   return {release,manifest};
 }
 export async function checkUpdate(version){const {release,manifest}=await latest();return {currentVersion:version,latestVersion:manifest.version,available:newer(manifest.version,version),releaseUrl:release.html_url,notes:release.body||'',prerelease:release.prerelease};}
@@ -51,7 +51,7 @@ export async function prepareUpdate(root,version) {
     const changed=[];
     for(const f of manifest.files){
       const current=await fs.readFile(path.join(root,f.path)).catch(()=>null);if(current&&sha256(current)===f.sha256)continue;
-      const asset=release.assets.find(a=>a.name===f.asset),bytes=await request(asset.browser_download_url,f.size);
+      const bytes=await request(f.url,f.size);
       if(bytes.length!==f.size||sha256(bytes)!==f.sha256)throw Error(`更新文件校验失败：${f.path}`);
       const target=path.join(directory,'staged',f.path);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,bytes);changed.push(f);
     }
